@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>NICJE Data Refinery</title>
+<meta name="description" content="Taking messy data, making it agent-kind."/>
+<style>
+:root{--ink:#0c0f0c;--panel:#141914;--paper:#e8eedc;--muted:#8a9380;--acid:#c6f25a;--line:#2a3324}
+*{box-sizing:border-box}body{margin:0;background:var(--ink);color:var(--paper);font-family:ui-monospace,Menlo,monospace}
+header,main{max-width:1100px;margin:0 auto;padding:20px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+a{color:var(--acid);text-decoration:none}h1{font-family:Georgia,serif;font-style:italic;font-weight:400;font-size:48px;line-height:1.1;margin:16px 0}
+.grid{display:grid;gap:16px}@media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}textarea,button,pre{width:100%}textarea{min-height:140px;background:var(--panel);color:var(--paper);border:1px solid var(--line);padding:12px}button{min-height:44px;border:1px solid var(--line);background:transparent;color:var(--paper);cursor:pointer}button.primary{background:var(--acid);color:var(--ink);border:0}.muted{color:var(--muted);font-size:13px}.panel{border:1px solid var(--line);padding:12px;background:var(--panel)}pre{overflow:auto;max-height:180px;font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="muted">X402-MICRO-PAY.COM / NICJE</div>
+    <strong>NICJE</strong>
+  </div>
+  <a href="https://x402-micro-pay.com">marketplace ↗</a>
+</header>
+<main>
+  <h1>Taking messy data, making it agent-kind.</h1>
+  <p class="muted">Swarm packaging for agents. x402 micropay $0.02 / eval set.</p>
+  <p><button id="eval" class="primary">Run eval_set recipe</button></p>
+  <div class="grid">
+    <textarea id="req">In accordance with policy and best practices it is imperative that we leverage a holistic approach to prepare a clean evaluation set.</textarea>
+    <textarea id="raw">id,name,value,category
+1,a,2.5,A
+2,b,5,B
+2,b,5,B
+3,c,4.5,C</textarea>
+  </div>
+  <div id="out" class="panel" style="margin-top:16px" class="muted">Run a recipe to package.</div>
+</main>
+<script>
+const bloat=[/in accordance with/gi,/best practices?/gi,/it is imperative that/gi,/leverage/gi,/holistic approach/gi,/going forward/gi];
+function clean(t){let s=t;for(const r of bloat)s=s.replace(r,' ');return s.replace(/\s+/g,' ').trim()}
+function parse(raw){const lines=raw.trim().split(/\n/).filter(Boolean);const h=lines[0].split(',');const seen=new Set();return lines.slice(1).map(l=>{const c=l.split(',');const o={};h.forEach((k,i)=>o[k.trim()]=(c[i]||'').trim());return o}).filter(o=>{const k=JSON.stringify(o);if(seen.has(k))return false;seen.add(k);return true})}
+document.getElementById('eval').onclick=()=>{
+  const req=document.getElementById('req').value;
+  const rows=parse(document.getElementById('raw').value);
+  const pkg={package_id:crypto.randomUUID(),need_type:'evaluation',row_count:rows.length,agent_kind:true,slogan:'Taking messy data, making it agent-kind.',cleaned:clean(req),rows};
+  document.getElementById('out').innerHTML='<p style="color:var(--acid)">AGENT-KIND CONFIRMED</p><pre>'+JSON.stringify(pkg,null,2)+'</pre>';
+};
+</script>
+</body>
+</html>

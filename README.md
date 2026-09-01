@@ -1,2 +1,7 @@
-# nicje-x402
-NICJE Data Refinery on x402-micro-pay.com — taking messy data, making it agent-kind.
+# NICJE Data Refinery
+
+Taking messy data, making it agent-kind.
+
+Lives on the x402-micro-pay.com space. Target host: `nicje.x402-micro-pay.com`.
+
+Agents request packages. Humans run the swarm in the UI.
