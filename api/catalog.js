@@ -1,4 +1,4 @@
-const { cors, MARKETPLACE, NETWORK, PAY_TO } = require("./_lib");
+const { cors, MARKETPLACE, NETWORK, PAY_TO, RECIPES } = require("./_lib");
 
 module.exports = (req, res) => {
   cors(res);
@@ -13,7 +13,12 @@ module.exports = (req, res) => {
     network: NETWORK,
     payTo: PAY_TO,
     currency: "USDC",
-    status: "paused", // HOTFIX 2026-10-09: unlisted until verify+settle ships
-    services: [],
+    services: Object.entries(RECIPES).map(([id, meta]) => ({
+      id,
+      name: meta.label,
+      path: `/api/recipes/${id}/run`,
+      method: "POST",
+      price_usd: meta.price,
+    })),
   });
 };
