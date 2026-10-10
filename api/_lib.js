@@ -1,4 +1,6 @@
-const PAY_TO = "0xDa1Eab46918882f8656a41cF9fCa80e2415369d1";
+const { TREASURY_ADDRESS } = require("./_treasury");
+// Only payTo ever advertised: env TREASURY_ADDRESS (default owner wallet 0xc22f…Ef69), checksum-validated at startup.
+const PAY_TO = TREASURY_ADDRESS;
 const NETWORK = "eip155:8453";
 const MARKETPLACE = "https://x402-micro-pay.com";
 
