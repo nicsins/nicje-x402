@@ -1,0 +1,14 @@
+{
+  "name": "nicje-x402",
+  "private": true,
+  "version": "1.1.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@coinbase/x402": "2.1.0",
+    "@x402/core": "2.28.0",
+    "@x402/evm": "2.28.0"
+  }
+}

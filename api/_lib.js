@@ -35,34 +35,7 @@ function cors(res) {
     "Content-Type, PAYMENT-SIGNATURE, X-PAYMENT",
   );
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-}
-
-// HOTFIX 2026-10-09: payments were never verified (any header >20 chars or
-// `x-test-payment: true` unlocked paid routes). Until real facilitator
-// verify+settle lands, every paid route returns 402 unconditionally.
-// eslint-disable-next-line no-unused-vars
-function hasPayment(req) {
-  return false;
-}
-
-function paymentRequired(req, res, usd, description) {
-  const accepts = {
-    scheme: "exact",
-    network: NETWORK,
-    maxAmountRequired: String(Math.round(usd * 1_000_000)),
-    resource: `https://${req.headers.host}${req.url}`,
-    description,
-    mimeType: "application/json",
-    payTo: PAY_TO,
-    extra: { name: "nicje-data-refinery", version: "1.0.0", marketplace: MARKETPLACE },
-  };
-  cors(res);
-  res.setHeader("PAYMENT-REQUIRED", Buffer.from(JSON.stringify(accepts)).toString("base64"));
-  res.status(402).json({
-    error: "Payment Required",
-    message: "This endpoint requires an x402 payment. Retry with PAYMENT-SIGNATURE.",
-    accepts: [accepts],
-  });
+  res.setHeader("Access-Control-Expose-Headers", "PAYMENT-REQUIRED, PAYMENT-RESPONSE");
 }
 
 function stripBloat(text) {
@@ -178,7 +151,5 @@ module.exports = {
   MARKETPLACE,
   RECIPES,
   cors,
-  hasPayment,
-  paymentRequired,
   refine,
 };
