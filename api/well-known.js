@@ -1,4 +1,4 @@
-const { cors, MARKETPLACE, NETWORK, PAY_TO } = require("./_lib");
+const { cors, MARKETPLACE, NETWORK, PAY_TO, RECIPES } = require("./_lib");
 
 module.exports = (req, res) => {
   cors(res);
@@ -12,7 +12,13 @@ module.exports = (req, res) => {
     native_skill: `${MARKETPLACE}/api/skills/nicje`,
     pay_to: PAY_TO,
     network: NETWORK,
-    status: "paused", // HOTFIX 2026-10-09: unlisted until verify+settle ships
-    services: [],
+    services: Object.entries(RECIPES).map(([id, meta]) => ({
+      id,
+      name: meta.label,
+      url: `${host}/api/recipes/${id}/run`,
+      method: "POST",
+      price: `$${meta.price.toFixed(2)}`,
+      network: NETWORK,
+    })),
   });
 };
