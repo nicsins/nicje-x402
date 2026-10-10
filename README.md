@@ -12,4 +12,4 @@ Connected to **https://x402-micro-pay.com** (native skill + partner listing). Sh
 | Recipe jobs | `POST /api/recipes/{eval_set,rag_chunks,policy_digest,custom}/run` |
 | Catalog | `GET /api/catalog` |
 
-Unpaid agent calls return HTTP 402 (USDC on Base). Target subdomain: `nicje.x402-micro-pay.com` (CNAME still needs Vercel attach).
+Paid recipe calls use x402 v2: unpaid calls get HTTP 402 with `PAYMENT-REQUIRED` (scheme `exact`, USDC `0x8335…2913` on Base `eip155:8453`, payTo `TREASURY_ADDRESS`). Payments are verified and settled through the CDP facilitator (`CDP_API_KEY_ID` / `CDP_API_KEY_SECRET`); a job that fails is never settled. No test/bypass headers. `npm test` runs the paywall tests. Target subdomain: `nicje.x402-micro-pay.com` (CNAME still needs Vercel attach).
