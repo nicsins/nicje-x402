@@ -154,3 +154,17 @@ test("normalizeCdpSecret turns escaped SEC1 into PKCS8", () => {
   assert.match(out, /BEGIN PRIVATE KEY/);
   crypto.createPrivateKey(out);
 });
+
+test("cdpJwt is a valid ES256 JWT with CDP claims", () => {
+  const { privateKey, publicKey } = crypto.generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+  const jwt = x.cdpJwt("org/key", privateKey, "POST", "/platform/v2/x402/verify", 1000);
+  const [h, c, s] = jwt.split(".");
+  const header = JSON.parse(Buffer.from(h, "base64url"));
+  const claims = JSON.parse(Buffer.from(c, "base64url"));
+  assert.equal(header.alg, "ES256");
+  assert.equal(header.kid, "org/key");
+  assert.deepEqual(claims.uris, ["POST api.cdp.coinbase.com/platform/v2/x402/verify"]);
+  assert.equal(claims.iss, "cdp");
+  assert.equal(claims.exp, 1120);
+  assert.ok(crypto.verify("sha256", Buffer.from(`${h}.${c}`), { key: publicKey, dsaEncoding: "ieee-p1363" }, Buffer.from(s, "base64url")));
+});

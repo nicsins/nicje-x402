@@ -33,12 +33,40 @@ function normalizeCdpSecret(raw) {
   return crypto.createPrivateKey(s + "\n").export({ type: "pkcs8", format: "pem" });
 }
 
+const CDP_HOST = "api.cdp.coinbase.com";
+const CDP_X402_ROUTE = "/platform/v2/x402";
+
+const b64url = (buf) => Buffer.from(buf).toString("base64url");
+
+// CDP API JWT (ES256), same claims as @coinbase/cdp-sdk generateJwt. Built on node:crypto
+// because cdp-sdk's CJS build requires ESM-only `jose`, which breaks on Vercel.
+function cdpJwt(keyId, keyObject, method, path, now = Math.floor(Date.now() / 1000)) {
+  const header = { alg: "ES256", kid: keyId, typ: "JWT", nonce: crypto.randomBytes(16).toString("hex") };
+  const claims = { sub: keyId, iss: "cdp", iat: now, nbf: now, exp: now + 120, uris: [`${method} ${CDP_HOST}${path}`] };
+  const input = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(claims))}`;
+  const sig = crypto.sign("sha256", Buffer.from(input), { key: keyObject, dsaEncoding: "ieee-p1363" });
+  return `${input}.${b64url(sig)}`;
+}
+
+function cdpFacilitatorConfig(keyId, secret) {
+  const keyObject = crypto.createPrivateKey(normalizeCdpSecret(secret));
+  if (keyObject.asymmetricKeyType !== "ec") throw new Error("CDP_API_KEY_SECRET must be an EC (ES256) key");
+  const auth = (method, sub) => ({ Authorization: `Bearer ${cdpJwt(keyId, keyObject, method, `${CDP_X402_ROUTE}${sub}`)}` });
+  return {
+    url: `https://${CDP_HOST}${CDP_X402_ROUTE}`,
+    createAuthHeaders: async () => ({
+      verify: auth("POST", "/verify"),
+      settle: auth("POST", "/settle"),
+      supported: auth("GET", "/supported"),
+    }),
+  };
+}
+
 function defaultFacilitator() {
   const id = process.env.CDP_API_KEY_ID;
   const secret = process.env.CDP_API_KEY_SECRET;
   if (!id || !secret) throw new Error("CDP_API_KEY_ID/CDP_API_KEY_SECRET not set");
-  const { createFacilitatorConfig } = require("@coinbase/x402");
-  return new HTTPFacilitatorClient(createFacilitatorConfig(id.trim(), normalizeCdpSecret(secret)));
+  return new HTTPFacilitatorClient(cdpFacilitatorConfig(id.trim(), secret));
 }
 
 let serverPromise = null;
@@ -167,6 +195,8 @@ module.exports = {
   MAX_TIMEOUT_SECONDS,
   PUBLIC_BASE_URL,
   normalizeCdpSecret,
+  cdpJwt,
+  cdpFacilitatorConfig,
   getServer,
   withPayment,
   _resetForTests,
