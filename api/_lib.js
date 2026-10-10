@@ -32,18 +32,17 @@ function cors(res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type, PAYMENT-SIGNATURE, x-payment, x-test-payment",
+    "Content-Type, PAYMENT-SIGNATURE, X-PAYMENT",
   );
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 }
 
+// HOTFIX 2026-10-09: payments were never verified (any header >20 chars or
+// `x-test-payment: true` unlocked paid routes). Until real facilitator
+// verify+settle lands, every paid route returns 402 unconditionally.
+// eslint-disable-next-line no-unused-vars
 function hasPayment(req) {
-  if (req.headers["x-test-payment"] === "true") return true;
-  const sig =
-    req.headers["payment-signature"] ||
-    req.headers["PAYMENT-SIGNATURE"] ||
-    req.headers["x-payment"];
-  return Boolean(sig && String(sig).length > 20);
+  return false;
 }
 
 function paymentRequired(req, res, usd, description) {
